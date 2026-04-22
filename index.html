@@ -3,15 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Ford Lease Overlay Tool</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --brand-black: #000000; 
-            --bg-gray: #f0f2f5; 
+        @font-face {
+            font-family: 'Ford Antenna Cond';
+            src: url('fonts/FordAntennaCondWGL-Med.otf') format('opentype');
+            font-weight: 500;
         }
-        
-        body { 
-            font-family: 'Poppins', sans-serif; 
+        @font-face {
+            font-family: 'Ford Antenna Cond';
+            src: url('fonts/FordAntennaCondWGL-Bold.otf') format('opentype');
+            font-weight: 700;
+        }
+        @font-face {
+            font-family: 'Ford Antenna Cond';
+            src: url('fonts/FordAntennaCondWGL-Black.otf') format('opentype');
+            font-weight: 900;
+        }
+
+        :root {
+            --brand-black: #000000;
+            --bg-gray: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Ford Antenna Cond', 'Arial Narrow', sans-serif;
             background: var(--bg-gray); 
             display: flex; 
             flex-direction: column; 
@@ -126,15 +141,20 @@
     let templateImg = new Image();
     templateImg.src = "template.png";
 
-    templateImg.onload = () => draw();
+    let templateReady = false;
+    templateImg.onload = () => { templateReady = true; draw(); };
+
+    document.fonts.load(`900 ${FONT_SIZE}px "Ford Antenna Cond"`).then(() => {
+        if (templateReady) draw();
+    });
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(templateImg, 0, 0, 1280, 960);
-        
+
         if (priceInput.value.trim() !== "") {
             ctx.fillStyle = "white";
-            ctx.font = `800 ${FONT_SIZE}px 'Poppins'`;
+            ctx.font = `900 ${FONT_SIZE}px 'Ford Antenna Cond', 'Arial Narrow', sans-serif`;
             ctx.textAlign = "left";
             ctx.textBaseline = "middle"; 
             ctx.fillText(priceInput.value, X_POS, Y_POS);
@@ -159,6 +179,5 @@
 </script>
 </body>
 </html>
-
 
 
