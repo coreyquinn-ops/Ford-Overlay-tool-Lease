@@ -4,29 +4,15 @@
     <meta charset="UTF-8">
     <title>Ford Lease Overlay Tool</title>
     <style>
-        @font-face {
-            font-family: 'Ford Antenna Cond';
-            src: url('fonts/FordAntennaCondWGL-Med.otf') format('opentype');
-            font-weight: 500;
-        }
-        @font-face {
-            font-family: 'Ford Antenna Cond';
-            src: url('fonts/FordAntennaCondWGL-Bold.otf') format('opentype');
-            font-weight: 700;
-        }
-        @font-face {
-            font-family: 'Ford Antenna Cond';
-            src: url('fonts/FordAntennaCondWGL-Black.otf') format('opentype');
-            font-weight: 900;
-        }
-
+        /* The tile's printed labels are Segoe UI Bold (the Windows system font),
+           so the numbers are drawn in the same font to match. */
         :root {
             --brand-black: #000000;
             --bg-gray: #f0f2f5;
         }
 
         body {
-            font-family: 'Ford Antenna Cond', 'Arial Narrow', sans-serif;
+            font-family: 'Segoe UI', 'Selawik', Arial, sans-serif;
             background: var(--bg-gray);
             display: flex;
             flex-direction: column;
@@ -156,9 +142,10 @@
     // All big numbers sit on the same baseline. The "$", "%", "months" and
     // "DOWN!*" are already printed on template.png, so we only draw the numbers.
     const BASELINE   = 118;   // y of the bottom of the digits
-    const BIG_SIZE   = 61;    // digit height ~45px, matches the X's
-    const SMALL_SIZE = 30;    // for the "Bi-weekly" word
-    const FONT       = "'Ford Antenna Cond', 'Arial Narrow', sans-serif";
+    const BIG_SIZE   = 64;    // digit height ~45px, matches the X's
+    const SMALL_SIZE = 31;    // for the "Bi-weekly" word
+    const WEIGHT     = 700;   // Segoe UI Bold, same as the tile's labels
+    const FONT       = "'Segoe UI', 'Selawik', Arial, sans-serif";
 
     const FIELDS = {
         // Lease from $[XXX] Bi-weekly   -> number starts right after the printed "$"
@@ -178,10 +165,7 @@
     let templateReady = false;
     templateImg.onload = () => { templateReady = true; draw(); };
 
-    Promise.all([
-        document.fonts.load(`900 ${BIG_SIZE}px "Ford Antenna Cond"`),
-        document.fonts.load(`700 ${SMALL_SIZE}px "Ford Antenna Cond"`),
-    ]).then(() => { if (templateReady) draw(); });
+    document.fonts.ready.then(() => { if (templateReady) draw(); });
 
     // Clean up what the user typed so the tile never shows "$$" or "%%".
     function clean(key, raw) {
@@ -220,10 +204,10 @@
             const value = clean(key, inputs[key].value);
             if (value === "") continue;
             const f = FIELDS[key];
-            const w = drawFit(value, f.x, f.align, f.maxWidth, BIG_SIZE, 900);
+            const w = drawFit(value, f.x, f.align, f.maxWidth, BIG_SIZE, WEIGHT);
 
             if (key === "payment") {
-                drawFit("Bi-weekly", f.x + w + BIWEEKLY_GAP, "left", 160, SMALL_SIZE, 700);
+                drawFit("Bi-weekly", f.x + w + BIWEEKLY_GAP, "left", 160, SMALL_SIZE, WEIGHT);
             }
         }
     }
