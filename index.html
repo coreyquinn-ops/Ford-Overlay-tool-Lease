@@ -27,86 +27,87 @@
 
         body {
             font-family: 'Ford Antenna Cond', 'Arial Narrow', sans-serif;
-            background: var(--bg-gray); 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 40px 20px; 
-            margin: 0; 
+            background: var(--bg-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
         }
-        
-        .container { 
-            background: white; 
-            padding: 35px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            max-width: 1000px; 
-            width: 100%; 
-            text-align: center; 
+
+        .container {
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
         }
-        
-        h2 { 
-            margin-top: 0; 
-            color: var(--brand-black); 
+
+        h2 {
+            margin-top: 0;
+            color: var(--brand-black);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .controls { 
-            display: flex; 
-            justify-content: center; 
-            gap: 20px; 
-            margin-bottom: 30px; 
-            align-items: flex-end; 
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+            flex-wrap: wrap;
         }
-        
-        .field-group { 
-            display: flex; 
-            flex-direction: column; 
-            text-align: left; 
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
         }
-        
-        label { 
-            font-size: 11px; 
-            font-weight: 700; 
-            color: #666; 
-            margin-bottom: 8px; 
-            text-transform: uppercase; 
+
+        label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
-        
-        input { 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 2px solid var(--brand-black); 
-            font-size: 24px; 
-            font-weight: 800; 
-            width: 180px; 
-            text-align: center; 
-            outline: none; 
+
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid var(--brand-black);
+            font-size: 24px;
+            font-weight: 800;
+            width: 140px;
+            text-align: center;
+            outline: none;
         }
-        
-        button { 
-            background: var(--brand-black); 
-            color: white; 
-            border: none; 
-            padding: 16px 32px; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            font-weight: 800; 
-            cursor: pointer; 
-            transition: 0.2s; 
+
+        button {
+            background: var(--brand-black);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        
-        button:hover { 
-            background: #333; 
-            transform: translateY(-2px); 
+
+        button:hover {
+            background: #333;
+            transform: translateY(-2px);
         }
-        
-        canvas { 
-            border: 1px solid #eee; 
-            max-width: 100%; 
-            height: auto; 
-            border-radius: 8px; 
+
+        canvas {
+            border: 1px solid #eee;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
             background-color: #fff;
         }
     </style>
@@ -114,12 +115,24 @@
 <body>
 
 <div class="container">
-    <h2>Ford Overlay Tool Lease</h2>
+    <h2>Ford Lease Overlay Tool</h2>
 
     <div class="controls">
         <div class="field-group">
-            <label>Finance Rate</label>
-            <input type="text" id="priceInput" value="" placeholder="---" maxlength="4">
+            <label>Bi-weekly payment ($)</label>
+            <input type="text" id="paymentInput" value="" placeholder="299" maxlength="6">
+        </div>
+        <div class="field-group">
+            <label>Rate (%)</label>
+            <input type="text" id="rateInput" value="" placeholder="2.99" maxlength="6">
+        </div>
+        <div class="field-group">
+            <label>Term (months)</label>
+            <input type="text" id="termInput" value="" placeholder="48" maxlength="3">
+        </div>
+        <div class="field-group">
+            <label>Down payment ($)</label>
+            <input type="text" id="downInput" value="" placeholder="2,500" maxlength="8">
         </div>
         <button id="downloadBtn">Download Final PNG</button>
     </div>
@@ -130,13 +143,34 @@
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const priceInput = document.getElementById('priceInput');
     const downloadBtn = document.getElementById('downloadBtn');
-    
-    // Core Coordinates
-    const X_POS = 870;     
-    const Y_POS = 120;      
-    const FONT_SIZE = 120; 
+
+    const inputs = {
+        payment: document.getElementById('paymentInput'),
+        rate:    document.getElementById('rateInput'),
+        term:    document.getElementById('termInput'),
+        down:    document.getElementById('downInput'),
+    };
+
+    // ---- Layout (measured from reference-layout.png, the tile with the X's) ----
+    // All big numbers sit on the same baseline. The "$", "%", "months" and
+    // "DOWN!*" are already printed on template.png, so we only draw the numbers.
+    const BASELINE   = 118;   // y of the bottom of the digits
+    const BIG_SIZE   = 61;    // digit height ~45px, matches the X's
+    const SMALL_SIZE = 30;    // for the "Bi-weekly" word
+    const FONT       = "'Ford Antenna Cond', 'Arial Narrow', sans-serif";
+
+    const FIELDS = {
+        // Lease from $[XXX] Bi-weekly   -> number starts right after the printed "$"
+        payment: { x: 59,  align: "left",  maxWidth: 200 },
+        // at [X.XX]%                     -> number ends right before the printed "%"
+        rate:    { x: 538, align: "right", maxWidth: 138 },
+        // for [XX] months                -> number starts under "for"
+        term:    { x: 645, align: "left",  maxWidth: 88  },
+        // with $[X,XXX] DOWN!*           -> number starts right after the printed "$"
+        down:    { x: 942, align: "left",  maxWidth: 200 },
+    };
+    const BIWEEKLY_GAP = 21;  // space between the payment and the word "Bi-weekly"
 
     let templateImg = new Image();
     templateImg.src = "template.png";
@@ -144,33 +178,71 @@
     let templateReady = false;
     templateImg.onload = () => { templateReady = true; draw(); };
 
-    document.fonts.load(`900 ${FONT_SIZE}px "Ford Antenna Cond"`).then(() => {
-        if (templateReady) draw();
-    });
+    Promise.all([
+        document.fonts.load(`900 ${BIG_SIZE}px "Ford Antenna Cond"`),
+        document.fonts.load(`700 ${SMALL_SIZE}px "Ford Antenna Cond"`),
+    ]).then(() => { if (templateReady) draw(); });
+
+    // Clean up what the user typed so the tile never shows "$$" or "%%".
+    function clean(key, raw) {
+        let v = raw.trim().replace(/[$%\s]/g, "");
+        if (key === "down" && /^\d+$/.test(v)) {
+            v = Number(v).toLocaleString("en-CA");        // 2500 -> 2,500
+        }
+        if (key === "term") v = v.replace(/[^\d]/g, "");
+        return v;
+    }
+
+    // Draw text at the given size, shrinking it if it would run into the
+    // printed labels. Returns the width actually drawn.
+    function drawFit(text, x, align, maxWidth, size, weight) {
+        let s = size;
+        ctx.font = `${weight} ${s}px ${FONT}`;
+        let w = ctx.measureText(text).width;
+        while (w > maxWidth && s > 20) {
+            s -= 1;
+            ctx.font = `${weight} ${s}px ${FONT}`;
+            w = ctx.measureText(text).width;
+        }
+        ctx.textAlign = align;
+        ctx.fillText(text, x, BASELINE);
+        return w;
+    }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(templateImg, 0, 0, 1280, 960);
 
-        if (priceInput.value.trim() !== "") {
-            ctx.fillStyle = "white";
-            ctx.font = `900 ${FONT_SIZE}px 'Ford Antenna Cond', 'Arial Narrow', sans-serif`;
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle"; 
-            ctx.fillText(priceInput.value, X_POS, Y_POS);
+        ctx.fillStyle = "white";
+        ctx.textBaseline = "alphabetic";
+
+        for (const key of Object.keys(FIELDS)) {
+            const value = clean(key, inputs[key].value);
+            if (value === "") continue;
+            const f = FIELDS[key];
+            const w = drawFit(value, f.x, f.align, f.maxWidth, BIG_SIZE, 900);
+
+            if (key === "payment") {
+                drawFit("Bi-weekly", f.x + w + BIWEEKLY_GAP, "left", 160, SMALL_SIZE, 700);
+            }
         }
     }
 
-    priceInput.addEventListener('input', draw);
+    Object.values(inputs).forEach(el => el.addEventListener('input', draw));
 
     downloadBtn.addEventListener('click', () => {
-        if (priceInput.value.trim() === "") {
-            alert("Please enter a price before downloading.");
+        const missing = Object.keys(inputs).filter(k => inputs[k].value.trim() === "");
+        if (missing.length) {
+            alert("Please fill in all four fields before downloading.");
             return;
         }
+        const p = clean("payment", inputs.payment.value);
+        const r = clean("rate", inputs.rate.value);
+        const t = clean("term", inputs.term.value);
+        const d = clean("down", inputs.down.value).replace(/,/g, "");
 
         const link = document.createElement('a');
-        link.download = `Ford_Deal_${priceInput.value}.png`;
+        link.download = `Ford_Lease_${p}bw_${r}pct_${t}mo_${d}down.png`;
         link.href = canvas.toDataURL("image/png");
         document.body.appendChild(link);
         link.click();
@@ -179,5 +251,3 @@
 </script>
 </body>
 </html>
-
-
