@@ -105,7 +105,7 @@
 
     <div class="controls">
         <div class="field-group">
-            <label>Bi-weekly payment ($)</label>
+            <label>Weekly payment ($)</label>
             <input type="text" id="paymentInput" value="" placeholder="299" maxlength="6">
         </div>
         <div class="field-group">
@@ -138,26 +138,25 @@
         down:    document.getElementById('downInput'),
     };
 
-    // ---- Layout (measured from reference-layout.png, the tile with the X's) ----
-    // All big numbers sit on the same baseline. The "$", "%", "months" and
-    // "DOWN!*" are already printed on template.png, so we only draw the numbers.
-    const BASELINE   = 118;   // y of the bottom of the digits
-    const BIG_SIZE   = 64;    // digit height ~45px, matches the X's
-    const SMALL_SIZE = 31;    // for the "Bi-weekly" word
+    // ---- Layout (measured from template.png) ----
+    // All big numbers sit on the same baseline as the printed "$" signs.
+    // The "$", "weekly", "%", "months" and "DOWN!*" are already printed on
+    // template.png, so we only draw the numbers.
+    const BASELINE   = 106;   // y of the bottom of the digits
+    const BIG_SIZE   = 64;    // digit height ~45px, matches the printed "$"
     const WEIGHT     = 700;   // Segoe UI Bold, same as the tile's labels
     const FONT       = "'Segoe UI', 'Selawik', Arial, sans-serif";
 
     const FIELDS = {
-        // Lease from $[XXX] Bi-weekly   -> number starts right after the printed "$"
-        payment: { x: 59,  align: "left",  maxWidth: 200 },
-        // at [X.XX]%                     -> number ends right before the printed "%"
-        rate:    { x: 538, align: "right", maxWidth: 138 },
-        // for [XX] months                -> number starts under "for"
-        term:    { x: 645, align: "left",  maxWidth: 88  },
-        // with $[X,XXX] DOWN!*           -> number starts right after the printed "$"
-        down:    { x: 942, align: "left",  maxWidth: 200 },
+        // Lease from $[XXX] weekly   -> number starts right after the printed "$"
+        payment: { x: 65,  align: "left",  maxWidth: 135 },
+        // at [X.XX]%                 -> number ends right before the printed "%"
+        rate:    { x: 513, align: "right", maxWidth: 140 },
+        // for [XX] months            -> number starts under "for"
+        term:    { x: 630, align: "left",  maxWidth: 90  },
+        // with $[X,XXX] DOWN!*       -> number starts right after the printed "$"
+        down:    { x: 936, align: "left",  maxWidth: 200 },
     };
-    const BIWEEKLY_GAP = 21;  // space between the payment and the word "Bi-weekly"
 
     let templateImg = new Image();
     templateImg.src = "template.png";
@@ -204,11 +203,7 @@
             const value = clean(key, inputs[key].value);
             if (value === "") continue;
             const f = FIELDS[key];
-            const w = drawFit(value, f.x, f.align, f.maxWidth, BIG_SIZE, WEIGHT);
-
-            if (key === "payment") {
-                drawFit("Bi-weekly", f.x + w + BIWEEKLY_GAP, "left", 160, SMALL_SIZE, WEIGHT);
-            }
+            drawFit(value, f.x, f.align, f.maxWidth, BIG_SIZE, WEIGHT);
         }
     }
 
@@ -226,7 +221,7 @@
         const d = clean("down", inputs.down.value).replace(/,/g, "");
 
         const link = document.createElement('a');
-        link.download = `Ford_Lease_${p}bw_${r}pct_${t}mo_${d}down.png`;
+        link.download = `Ford_Lease_${p}wk_${r}pct_${t}mo_${d}down.png`;
         link.href = canvas.toDataURL("image/png");
         document.body.appendChild(link);
         link.click();
